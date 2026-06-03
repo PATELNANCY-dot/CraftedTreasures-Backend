@@ -644,5 +644,37 @@ namespace practiceApplication.Controllers
             }
         }
 
+        [HttpGet("GetContacts")]
+        public IActionResult GetContacts()
+        {
+            List<object> contacts = new List<object>();
+
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                string query = "SELECT contectid, FullName, Email, messagees FROM Contact";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                con.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    contacts.Add(new
+                    {
+                        ContectId = Convert.ToInt32(reader["contectid"]),
+                        FullName = reader["FullName"].ToString(),
+                        Email = reader["Email"].ToString(),
+                        Messagees = reader["messagees"].ToString()
+                    });
+                }
+
+                con.Close();
+            }
+
+            return Ok(contacts);
+        }
+
     }
 }
