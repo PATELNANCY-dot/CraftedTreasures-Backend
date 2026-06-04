@@ -463,6 +463,50 @@ namespace practiceApplication.Controllers
             }
         }
 
+        [HttpGet("SearchOrders")]
+        public IActionResult SearchOrders(string keyword)
+        {
+            List<object> orders = new List<object>();
 
+            using (SqlConnection con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                string query = @"
+                            SELECT *
+                            FROM Orders
+                            WHERE
+                                CAST(OrderId AS VARCHAR) LIKE '%' + @keyword + '%'
+                                OR CustomerName LIKE '%' + @keyword + '%'
+                                OR CustomerEmail LIKE '%' + @keyword + '%'
+                            ORDER BY OrderDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@keyword", keyword ?? "");
+
+                con.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    orders.Add(new
+                    {
+                        orderId = reader["OrderId"],
+                        clientID = reader["ClientID"],
+                        orderDate = reader["OrderDate"],
+                        totalAmount = reader["TotalAmount"],
+                        status = reader["Status"],
+                        isVisible = reader["IsVisible"],
+                        customerName = reader["CustomerName"],
+                        customerEmail = reader["CustomerEmail"],
+                        customerAddress = reader["CustomerAddress"],
+                        paymentMethod = reader["PaymentMethod"]
+                    });
+                }
+
+                con.Close();
+            }
+
+            return Ok(orders);
+        }
     }
 }  

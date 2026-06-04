@@ -294,8 +294,42 @@ namespace practiceApplication.Controllers
 
             return Json(products);
         }
+        [HttpGet("searchUser")]
+        public IActionResult SearchUser(string name)
+        {
+            List<object> users = new List<object>();
 
+            using (SqlConnection con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                string query = @"SELECT ClientID, FullName, Email
+                         FROM registrtionClient
+                         WHERE FullName LIKE @name
+                         OR Email LIKE @name";
 
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.CommandType = CommandType.Text;
+                cmd.Parameters.AddWithValue("@name", "%" + name + "%");
+
+                con.Open();
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    users.Add(new
+                    {
+                        ClientID = reader["ClientID"],
+                        FullName = reader["FullName"].ToString(),
+                        Email = reader["Email"].ToString()
+                    });
+                }
+
+                con.Close();
+            }
+
+            return Ok(users);
+        }
 
 
 
